@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "607563670252",
+    "project_id": "hasan-pro",
+    "storage_bucket": "hasan-pro.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607563670252:android:466fba7dc52187e1a23bc9",
+        "android_client_info": {
+          "package_name": "com.example.hasan_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "607563670252-nlfcr9nk969df0idd967eufmh2ckdkap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx8p-yTRWNJTlo0kL-jbqzyOHPrTNuGc0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "607563670252-nlfcr9nk969df0idd967eufmh2ckdkap.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
