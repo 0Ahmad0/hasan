@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -30,6 +33,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    loadVideoPlayer();
     super.initState();
     _tabController = TabController(vsync: this, length: _tabs.length);
   }
@@ -40,9 +44,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  late VideoPlayerController controller;
+  loadVideoPlayer(){
+    controller = VideoPlayerController.asset('assets/video/1.mp4');
+    controller.addListener(() {
+      setState(() {});
+    });
+    controller.initialize().then((value){
+      setState(() {});
+    });
+
+  }
+  final jjj =  VideoThumbnail.thumbnailData(
+  video: 'assets/video/1.mp4',
+  imageFormat: ImageFormat.JPEG,
+  maxWidth: 128, // specify the width of the thumbnail, let the height auto-scaled to keep the source aspect ratio
+  quality: 25,
+  );
+
   @override
   Widget build(BuildContext context) {
-    print('hello');
+
     return DefaultTabController(
         length: _tabs.length,
         child: Scaffold(
@@ -75,40 +97,60 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           padding: const EdgeInsets.all(10.0),
                           margin: const EdgeInsets.all(10.0),
                           width: double.infinity,
-                          height: MediaQuery.of(context).size.height / 4.5,
+                          // height: MediaQuery.of(context).size.height / 3,
                           child: Column(
                             children: [
-                              Expanded(child: FlutterLogo()),
-                              Divider(color: Colors.blue),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  SizedBox(
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.date_range),
-                                        Text(
-                                            '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}'),
-                                      ],
+
+                              AspectRatio(
+                                aspectRatio: controller.value.aspectRatio,
+                                child: VideoPlayer(controller),
+                              ),
+
+                              Container( //duration of video
+                                child: Text("Total Duration: " + controller.value.duration.toString()),
+                              ),
+                              Container(
+                                  child: VideoProgressIndicator(
+                                      controller,
+                                      allowScrubbing: true,
+                                      colors:VideoProgressColors(
+                                        backgroundColor: Colors.redAccent,
+                                        playedColor: Colors.green,
+                                        bufferedColor: Colors.purple,
+                                      )
+                                  )
+                              ),
+
+                              Container(
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed: (){
+                                          if(controller.value.isPlaying){
+                                            controller.pause();
+                                          }else{
+                                            controller.play();
+                                          }
+
+                                          setState(() {
+
+                                          });
+                                        },
+                                        icon:Icon(controller.value.isPlaying?Icons.pause:Icons.play_arrow)
                                     ),
-                                  ),
-                                  SizedBox(
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.article),
-                                        Text('Ahmad Alhariri'),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.category),
-                                        Text('All'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+
+                                    IconButton(
+                                        onPressed: (){
+                                          controller.seekTo(Duration(seconds: 0));
+
+                                          setState(() {
+
+                                          });
+                                        },
+                                        icon:Icon(Icons.stop)
+                                    )
+                                  ],
+                                ),
                               )
                             ],
                           ),
