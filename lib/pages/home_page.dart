@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hasan_project/pages/video_player_page.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -34,6 +38,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     loadVideoPlayer();
+    generateThumbnail();
     super.initState();
     _tabController = TabController(vsync: this, length: _tabs.length);
   }
@@ -55,12 +60,47 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     });
 
   }
-  final jjj =  VideoThumbnail.thumbnailData(
-  video: 'assets/video/1.mp4',
-  imageFormat: ImageFormat.JPEG,
-  maxWidth: 128, // specify the width of the thumbnail, let the height auto-scaled to keep the source aspect ratio
-  quality: 25,
-  );
+  String? _thumbnailFile;
+
+  String? _thumbnailUrl;
+
+  Uint8List? _thumbnailData;
+
+
+  Future<File> copyAssetFile(String assetFileName) async {
+    Directory tempDir = await getTemporaryDirectory();
+    final byteData = await rootBundle.load(assetFileName);
+
+    File videoThumbnailFile = File("${tempDir.path}/$assetFileName")
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(byteData.buffer
+          .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    return videoThumbnailFile;
+  }
+
+  void generateThumbnail() async {
+    File videoTempFile1 = await copyAssetFile("assets/video/1.mp4");
+    File videoTempFile2 = await copyAssetFile("assets/video/2.mp4");
+
+    _thumbnailFile = await VideoThumbnail.thumbnailFile(
+        video: videoTempFile1.path,
+        thumbnailPath: (await getTemporaryDirectory()).path,
+        imageFormat: ImageFormat.PNG);
+
+    _thumbnailUrl = await VideoThumbnail.thumbnailFile(
+        video:
+        "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
+        thumbnailPath: (await getTemporaryDirectory()).path,
+        imageFormat: ImageFormat.WEBP);
+
+    _thumbnailData = await VideoThumbnail.thumbnailData(
+      video: videoTempFile2.path,
+      imageFormat: ImageFormat.JPEG,
+      quality: 25,
+    );
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,73 +131,58 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             builder: (context, snapShot) {
               return snapShot.hasData
                   ? ListView.builder(
-                      padding: const EdgeInsets.all(10.0),
-                      itemBuilder: (_, __) => Card(
-                        child: Container(
-                          padding: const EdgeInsets.all(10.0),
-                          margin: const EdgeInsets.all(10.0),
-                          width: double.infinity,
-                          // height: MediaQuery.of(context).size.height / 3,
-                          child: Column(
-                            children: [
-
-                              AspectRatio(
-                                aspectRatio: controller.value.aspectRatio,
-                                child: VideoPlayer(controller),
-                              ),
-
-                              Container( //duration of video
-                                child: Text("Total Duration: " + controller.value.duration.toString()),
-                              ),
-                              Container(
-                                  child: VideoProgressIndicator(
-                                      controller,
-                                      allowScrubbing: true,
-                                      colors:VideoProgressColors(
-                                        backgroundColor: Colors.redAccent,
-                                        playedColor: Colors.green,
-                                        bufferedColor: Colors.purple,
-                                      )
-                                  )
-                              ),
-
-                              Container(
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                        onPressed: (){
-                                          if(controller.value.isPlaying){
-                                            controller.pause();
-                                          }else{
-                                            controller.play();
-                                          }
-
-                                          setState(() {
-
-                                          });
-                                        },
-                                        icon:Icon(controller.value.isPlaying?Icons.pause:Icons.play_arrow)
-                                    ),
-
-                                    IconButton(
-                                        onPressed: (){
-                                          controller.seekTo(Duration(seconds: 0));
-
-                                          setState(() {
-
-                                          });
-                                        },
-                                        icon:Icon(Icons.stop)
-                                    )
-                                  ],
+                padding: const EdgeInsets.all(10.0),
+                itemBuilder: (_, __) => Card(
+                  child: Container(
+                    padding: const EdgeInsets.all(10.0),
+                    margin: const EdgeInsets.all(10.0),
+                    width: double.infinity,
+                    // height: MediaQuery.of(context).size.height / 3,
+                    child: Column(
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.memory(
+                              _thumbnailData!,
+                              width: double.infinity,
+                              fit: BoxFit.fill,
+                              height:
+                              MediaQuery.of(context).size.height / 3,
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            ViderPlayerScreen(
+                                              controller: controller,
+                                            )));
+                              },
+                              child: CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.black45,
+                                child: Icon(
+                                  Icons.play_arrow,
+                                  size: 40,
+                                  color: Colors.white,
                                 ),
-                              )
-                            ],
-                          ),
+                              ),
+                            )
+                          ],
                         ),
-                      ),
-                      itemCount: _tabs.length,
-                    )
+                        Container(
+                          //duration of video
+                          child: Text("Total Duration: " +
+                              controller.value.duration.toString()),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                itemCount: _tabs.length,
+              )
                   : Shimmer.fromColors(
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
