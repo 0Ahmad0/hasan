@@ -46,7 +46,7 @@ dependencies:
   cloud_firestore: ^4.4.5
   circle_progress_bar:
   filesize:
-  dio:
+  dio: ^5.0.3
   url_launcher:
   path:
   get:
