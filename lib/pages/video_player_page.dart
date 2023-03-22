@@ -20,47 +20,40 @@ class _ViderPlayerScreenState extends State<ViderPlayerScreen> {
               widget.controller
             ),
           ),
-          Container(
-              child: VideoProgressIndicator(
-                  widget.controller,
-                  allowScrubbing: true,
-                  colors:VideoProgressColors(
-                    backgroundColor: Colors.redAccent,
-                    playedColor: Colors.green,
-                    bufferedColor: Colors.purple,
-                  )
+          VideoProgressIndicator(
+              widget.controller,
+              allowScrubbing: true,
+              colors:VideoProgressColors(
               )
           ),
-          Container(
-            child: Row(
-              children: [
-                IconButton(
-                    onPressed: (){
-                      if(widget.controller.value.isPlaying){
-                        widget.controller.pause();
-                      }else{
-                        widget.controller.play();
-                      }
+          Row(
+            children: [
+              IconButton(
+                  onPressed: (){
+                    if(widget.controller.value.isPlaying){
+                      widget.controller.pause();
+                    }else{
+                      widget.controller.play();
+                    }
 
-                      setState(() {
+                    setState(() {
 
-                      });
-                    },
-                    icon:Icon(widget.controller.value.isPlaying?Icons.pause:Icons.play_arrow)
-                ),
+                    });
+                  },
+                  icon:Icon(widget.controller.value.isPlaying?Icons.pause:Icons.play_arrow)
+              ),
 
-                IconButton(
-                    onPressed: (){
-                      widget.controller.seekTo(Duration(seconds: 0));
+              IconButton(
+                  onPressed: (){
+                    widget.controller.seekTo(Duration(seconds: 0));
 
-                      setState(() {
+                    setState(() {
 
-                      });
-                    },
-                    icon:Icon(Icons.stop)
-                )
-              ],
-            ),
+                    });
+                  },
+                  icon:Icon(Icons.stop)
+              )
+            ],
           )
 
         ],
