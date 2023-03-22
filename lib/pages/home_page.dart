@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     File videoTempFile2 = await copyAssetFile("assets/video/2.mp4");
 
     _thumbnailFile = await VideoThumbnail.thumbnailFile(
-        video: videoTempFile1.path,
+        video: videoTempFile2.path,
         thumbnailPath: (await getTemporaryDirectory()).path,
         imageFormat: ImageFormat.PNG);
 
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         imageFormat: ImageFormat.WEBP);
 
     _thumbnailData = await VideoThumbnail.thumbnailData(
-      video: videoTempFile1.path,
+      video: videoTempFile2.path,
       imageFormat: ImageFormat.JPEG,
       quality: 25,
     );
@@ -160,13 +160,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // Image.memory(
-                            //   _thumbnailData!,
-                            //   width: double.infinity,
-                            //   fit: BoxFit.fill,
-                            //   height:
-                            //   MediaQuery.of(context).size.height / 3,
-                            // ),
+                            Image.memory(
+                              _thumbnailData!,
+                              width: double.infinity,
+                              fit: BoxFit.fill,
+                              height:
+                              MediaQuery.of(context).size.height / 3,
+                            ),
                             InkWell(
                               onTap: () {
                                 Navigator.push(
