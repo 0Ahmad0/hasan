@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:hasan_project/controller/video_provider.dart';
 import 'package:hasan_project/pages/home_page.dart';
 import 'package:provider/provider.dart';
 
@@ -25,9 +26,9 @@ class MyApp extends StatelessWidget {
       MultiProvider(
         providers: [
           // ChangeNotifierProvider(create: (_) => AppProvider()),
-          // Provider<ProfileProvider>(create: (_)=>ProfileProvider()),
           // Provider<HomeProvider>(create: (_)=>HomeProvider()),
            Provider<DownloaderProvider>(create: (_)=>DownloaderProvider()),
+           Provider<VideoProvider>(create: (_)=>VideoProvider()),
           //     Provider<CreateEnvironmentProvider>(create: (_)=>CreateEnvironmentProvider()),
         ],
         child :GetMaterialApp(

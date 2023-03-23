@@ -82,6 +82,10 @@ class Video {
       'localUrl': localUrl,
     };
   }
+  factory Video.init( ){
+
+    return Video(name: '', category: '', typeVideo: '', senderId: '', sendingTime: DateTime.now());
+  }
 }
 
 
@@ -118,6 +122,10 @@ class Videos {
     'id':id,
     'listVideo':tempMap,
   };
+  }
+  factory Videos.init( ){
+
+    return Videos(listVideo: []);
   }
 }
 

@@ -19,6 +19,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  var getVideo;
+
   List<Map<String, dynamic>> _tabs = [
     {"text": "all", "icon": null},
     {"text": "Music", "icon": Icons.music_note},

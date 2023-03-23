@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hasan_project/controller/video_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
-
+import 'package:provider/provider.dart';
 class UploadVideoPage extends StatefulWidget {
   const UploadVideoPage({Key? key}) : super(key: key);
 
@@ -10,8 +11,8 @@ class UploadVideoPage extends StatefulWidget {
 }
 
 class _UploadVideoPageState extends State<UploadVideoPage> {
-  late final VideoPlayerController _videoPlayerController;
-
+  late  VideoPlayerController _videoPlayerController;
+  late VideoProvider videoProvider;
   @override
   void initState() {
     _videoPlayerController = VideoPlayerController.asset('assets/video/1.mp4');
@@ -26,21 +27,24 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     // _videoPlayerController.initialize().then((value) {
     //   setState(() {});
     // });
+    return _videoPlayerController;
   }
 
   XFile? cameraPicker;
   XFile? galleryPicker;
+  XFile? picker;
 
   _pickVideoFromCamera() async {
     cameraPicker = await ImagePicker().pickVideo(source: ImageSource.camera);
+    picker=cameraPicker;
     _videoPlayerController = loadVideoPlayer(cameraPicker!.path);
     setState(() {});
   }
 
   _pickVideoFromGallery() async {
     galleryPicker = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    picker=galleryPicker;
     _videoPlayerController = loadVideoPlayer(galleryPicker!.path);
-
     setState(() {});
   }
 
@@ -48,6 +52,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
 
   @override
   Widget build(BuildContext context) {
+    videoProvider=Provider.of<VideoProvider>(context,listen: true);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Upload Video'),
@@ -118,7 +123,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
                   style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 60.0)),
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
+                    if (_formKey.currentState!.validate()&&picker!=null) {
                       Navigator.pop(context);
                     }else{
                       ScaffoldMessenger.of(context).showSnackBar(
