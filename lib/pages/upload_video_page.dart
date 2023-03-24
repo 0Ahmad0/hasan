@@ -50,7 +50,6 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     cameraPicker = await ImagePicker().pickVideo(source: ImageSource.camera);
     picker=cameraPicker;
     _videoPlayerController = loadVideoPlayer(cameraPicker!.path);
-
     setState(() {});
   }
 
@@ -58,7 +57,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     galleryPicker = await ImagePicker().pickVideo(source: ImageSource.gallery);
     picker=galleryPicker;
     _videoPlayerController = await loadVideoPlayer(galleryPicker!.path);
-
+    _videoPlayerController.play();
     setState(() {});
   }
 
