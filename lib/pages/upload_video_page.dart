@@ -30,14 +30,14 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     super.initState();
   }
 
-  loadVideoPlayer(String path) {
+  loadVideoPlayer(String path) async {
     _videoPlayerController = VideoPlayerController.asset(path);
     // _videoPlayerController.addListener(() {
     //   setState(() {});
     // });
-    // _videoPlayerController.initialize().then((value) {
-    //   setState(() {});
-    // });
+    await  _videoPlayerController.initialize().then((value) {
+     // setState(() {});
+     });
     return _videoPlayerController;
   }
   String? _thumbnailFile;
@@ -57,7 +57,8 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
   _pickVideoFromGallery() async {
     galleryPicker = await ImagePicker().pickVideo(source: ImageSource.gallery);
     picker=galleryPicker;
-    _videoPlayerController = loadVideoPlayer(galleryPicker!.path);
+    _videoPlayerController = await loadVideoPlayer(galleryPicker!.path);
+
     setState(() {});
   }
 
@@ -109,7 +110,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
                   Expanded(
                           child: AspectRatio(
                           aspectRatio: 10.0,
-                          child: VideoPlayer(_videoPlayerController),
+                          child:VideoPlayer(_videoPlayerController),
                         ))
                 ],
               )),

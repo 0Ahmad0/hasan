@@ -95,16 +95,16 @@ class VideoProvider with ChangeNotifier{
  }
 
   getVideoPlayers({required List<Video> listVideo}) async {
-    for(Video video in listVideo){
-      if(!mapVideoPlayer.containsKey(video.url)){
-        VideoPlayerController controller;
-        mapVideoPlayer[video.url] = VideoPlayerController.network(video.url);
-        mapVideoPlayer[video.url].initialize().then((value){
-         // print('url ${video.url} ,${mapVideoPlayer[video.url].value.duration.inSeconds}');
-          notifyListeners();
-        });
-      }
-    }
+    // for(Video video in listVideo){
+    //   if(!mapVideoPlayer.containsKey(video.url)){
+    //     VideoPlayerController controller;
+    //     mapVideoPlayer[video.url] = VideoPlayerController.network(video.url);
+    //     mapVideoPlayer[video.url].initialize().then((value){
+    //      // print('url ${video.url} ,${mapVideoPlayer[video.url].value.duration.inSeconds}');
+    //       notifyListeners();
+    //     });
+    //   }
+    // }
     return mapVideoPlayer;
   }
 getVideoPlayer({required Video video}) async {
@@ -121,13 +121,13 @@ getVideoPlayer({required Video video}) async {
 }
  getThumbnailForVideo({required Video video}) async {
 
-     if(!mapThumbnail.containsKey(video.url)){
-       mapThumbnail[video.url]= await VideoThumbnail.thumbnailData(
-         video: video.url,
-         imageFormat: ImageFormat.JPEG,
-         quality: 25,
-       );
-     }
+     // if(!mapThumbnail.containsKey(video.url)){
+     //   mapThumbnail[video.url]= await VideoThumbnail.thumbnailData(
+     //     video: video.url,
+     //     imageFormat: ImageFormat.JPEG,
+     //     quality: 25,
+     //   );
+     // }
      return mapThumbnail[video.url];
  }
 }
