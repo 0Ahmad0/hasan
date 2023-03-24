@@ -12,6 +12,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform
   );
+  Provider.debugCheckInvalidValueType = null;
   runApp( const MyApp());
 }
 
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
            Provider<VideoProvider>(create: (_)=>VideoProvider()),
           //     Provider<CreateEnvironmentProvider>(create: (_)=>CreateEnvironmentProvider()),
         ],
-        child :GetMaterialApp(
+        child :MaterialApp(
                     debugShowCheckedModeBanner: false,
                     home: HomePage(),
                   )

@@ -2,15 +2,18 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hasan_project/controller/video_provider.dart';
+import 'package:hasan_project/model/models.dart';
 import 'package:hasan_project/pages/upload_video_page.dart';
 import 'package:hasan_project/pages/video_player_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-
+import 'package:provider/provider.dart';
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
 
@@ -19,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  var getVideo;
+  var getVideos;
 
   List<Map<String, dynamic>> _tabs = [
     {"text": "all", "icon": null},
@@ -34,13 +37,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       return true;
     });
   }
-
+  getVideosFun() async {
+    // chatProvider.fetchChatByListIdUser( listIdUser: chatProvider.chat.listIdUser);
+    getVideos = videoProvider.fetchVideosStream();
+    return getVideos;
+  }
   late TabController _tabController;
-
+late VideoProvider videoProvider;
   @override
   void initState() {
-    loadVideoPlayer();
+      videoProvider=Provider.of<VideoProvider>(context,listen:false);
+       getVideosFun();
+     loadVideoPlayer();
     generateThumbnail();
+
     super.initState();
     _tabController = TabController(vsync: this, length: _tabs.length);
   }
@@ -55,13 +65,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   loadVideoPlayer(){
     controller = VideoPlayerController.asset('assets/video/1.mp4');
     controller.addListener(() {
-      setState(() {});
+      ///setState(() {});
     });
     controller.initialize().then((value){
-      setState(() {});
+     /// setState(() {});
     });
 
   }
+  String category='all';
   String? _thumbnailFile;
 
   String? _thumbnailUrl;
@@ -101,12 +112,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       quality: 25,
     );
 
-    setState(() {});
+    ///setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-
+      videoProvider=Provider.of<VideoProvider>(context);
     return DefaultTabController(
         length: _tabs.length,
         child: Scaffold(
@@ -117,10 +128,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               }, label: const Text('Upload')
           ),
           appBar: AppBar(
-            title: const Text("Vedios"),
+            title: const Text("Videos"),
             centerTitle: true,
             bottom: TabBar(
               onTap: (index){
+                category=_tabs[index]['text'];
+                videoProvider.notifyListeners();
               },
               isScrollable: true,
               tabs: [
@@ -136,160 +149,223 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ],
             ),
           ),
-          body: FutureBuilder(
-            future: getData(),
-            builder: (context, snapShot) {
-              return snapShot.hasData
-                  ? ListView.builder(
-                padding: const EdgeInsets.all(10.0),
-                itemBuilder: (_, __) => Container(
-                  decoration: BoxDecoration(
+          body:
+          StreamBuilder<QuerySnapshot>(
+            //prints the messages to the screen0
+              stream: getVideos,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return shimmer();
+                } else if (snapshot.connectionState == ConnectionState.active) {
+                  if (snapshot.hasError) {
+                    return const Text('Error');
+                  } else if (snapshot.hasData) {
+                    shimmer();
+                    videoProvider.videos=Videos.fromJson(snapshot.data!.docs);
+                    videoProvider.listVideo=videoProvider.videos.listVideo;
+                    videoProvider.getVideoPlayers(listVideo: videoProvider.listVideo);
+                  return  ChangeNotifierProvider<VideoProvider>.value(
+                        value: Provider.of<VideoProvider>(context),
+                        child: Consumer<VideoProvider>(
+                            builder: (context, value, child){
+                              videoProvider.listVideo=videoProvider.filterVideos(listVideo: videoProvider.listVideo, category: category!);
+                              return builderVideos(videoProvider: videoProvider);
+                            }));
+
+                    /// }));
+                  } else {
+                    return const Text('Empty data');
+                  }
+                } else {
+                  return Text('State: ${snapshot.connectionState}');
+                }
+              })
+
+        )
+    );
+  }
+  shimmer(){
+    return  Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      // enabled: _enabled,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(10.0),
+        itemBuilder: (_, __) =>
+
+            Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Column(
+            children: <Widget>[
+              Container(
+                width: double.infinity,
+                height: MediaQuery.of(context).size.height / 6,
+                color: Colors.white,
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    width: double.infinity,
+                    height: 8.0,
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: .2
-                      )
-                    ]
                   ),
-                  margin: const EdgeInsets.all(10.0),
-                  width: double.infinity,
-                   height: MediaQuery.of(context).size.height / 3.75,
-                  child: Column(
+                  const SizedBox(
+                    height: 8.0,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                        right:
+                        MediaQuery.of(context).size.width /
+                            3),
+                    width: double.infinity,
+                    height: 8.0,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(
+                    height: 8.0,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                        right:
+                        MediaQuery.of(context).size.width /
+                            2),
+                    width: double.infinity,
+                    height: 8.0,
+                    color: Colors.white,
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+        itemCount: _tabs.length,
+      ),
+    );
+  }
+  builderVideos({required VideoProvider videoProvider})  {
+    return ListView.builder(
+      padding: const EdgeInsets.all(10.0),
+      itemBuilder: (_, index) =>
+          Container(
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14.0),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: .2
+                  )
+                ]
+            ),
+            margin: const EdgeInsets.all(10.0),
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height / 3.75,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Expanded(
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Image.memory(
-                              _thumbnailData!,
+                      FutureBuilder(
+                          future: videoProvider.getThumbnailForVideo(video: videoProvider.listVideo[index]),
+                          builder: (context, snapShot) {
+                            return snapShot.hasData
+                                ?Image.memory(
+                              videoProvider.mapThumbnail[videoProvider.listVideo[index].url]!,
                               width: double.infinity,
                               fit: BoxFit.fill,
                               height:
                               MediaQuery.of(context).size.height / 3,
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) =>
-                                            ViderPlayerScreen(
-                                              controller: controller,
-                                            )));
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: Colors.black45,
-                                child: Icon(
-                                  Icons.play_arrow,
-                                  color: Colors.white,
-                                ),
-                              ),
                             )
-                          ],
+                                :Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!, child: Container(
+                              width: double.infinity,
+                              height: MediaQuery.of(context).size.height / 6,
+                              color: Colors.white,
+                            ),); }),
+                      ChangeNotifierProvider<VideoProvider>.value(
+                        value: Provider.of<VideoProvider>(context),
+                        child: Consumer<VideoProvider>(
+                          builder: (context, value, child)=>
+
+                      Visibility(
+                        visible: videoProvider.mapVideoPlayer[videoProvider.listVideo[index].url].value.isInitialized,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        ViderPlayerScreen(
+                                          controller: videoProvider.mapVideoPlayer[videoProvider.listVideo[index].url],
+                                        )));
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: Colors.black45,
+                            child: Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
+                      )))
+                    ],
+                  ),
+                ),
+                const Divider(
+                  color: Colors.blue,
+                  thickness: 1,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                            color: Colors.greenAccent.shade100,
+                            borderRadius: BorderRadius.circular(4.0)
+                        ),
+                        child:  ChangeNotifierProvider<VideoProvider>.value(
+                    value: Provider.of<VideoProvider>(context),
+                    child: Consumer<VideoProvider>(
+                    builder: (context, value, child)=>videoProvider.mapVideoPlayer[videoProvider.listVideo[index].url].value.isInitialized
+                                  ?
+                              Text(
+                                //    '${controller.value.duration.inMinutes}'
+                                  '${videoProvider.mapVideoPlayer[videoProvider.listVideo[index].url]!.value.duration.inMinutes}'
+                                      ':'
+                                  // '${controller.value.duration.inSeconds}'
+                                      '${videoProvider.mapVideoPlayer[videoProvider.listVideo[index].url]!.value.duration.inSeconds}'
+                              )
+                                  :Text('Loading ...')
+                    )),
                       ),
-                      const Divider(
-                        color: Colors.blue,
-                        thickness: 1,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.greenAccent.shade100,
-                                borderRadius: BorderRadius.circular(4.0)
-                              ),
-                              child: Text(
-                                  '${controller.value.duration.inMinutes}'
-                                  ':'
-                                  '${controller.value.duration.inSeconds}'
-                              ),
-                            ),
-                            const SizedBox(width: 10.0,),
-                            Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent.shade100,
-                                borderRadius: BorderRadius.circular(4.0)
-                              ),
-                              child: Text(
-                                 '${controller.dataSource}'
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 10.0,),
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                            color: Colors.redAccent.shade100,
+                            borderRadius: BorderRadius.circular(4.0)
+                        ),
+                        child: Text(
+                            '${videoProvider.listVideo[index].name}'
+                          //'${controller.dataSource}'
                         ),
                       ),
                     ],
                   ),
                 ),
-                itemCount: _tabs.length,
-              )
-                  : Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      // enabled: _enabled,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(10.0),
-                        itemBuilder: (_, __) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Column(
-                            children: <Widget>[
-                              Container(
-                                width: double.infinity,
-                                height: MediaQuery.of(context).size.height / 6,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(
-                                height: 8.0,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Container(
-                                    width: double.infinity,
-                                    height: 8.0,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(
-                                    height: 8.0,
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(
-                                        right:
-                                            MediaQuery.of(context).size.width /
-                                                3),
-                                    width: double.infinity,
-                                    height: 8.0,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(
-                                    height: 8.0,
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(
-                                        right:
-                                            MediaQuery.of(context).size.width /
-                                                2),
-                                    width: double.infinity,
-                                    height: 8.0,
-                                    color: Colors.white,
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                        itemCount: _tabs.length,
-                      ),
-                    );
-            },
+              ],
+            ),
           ),
-        ));
+      itemCount: videoProvider.listVideo.length,
+    );
   }
 }

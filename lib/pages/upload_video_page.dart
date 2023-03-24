@@ -1,8 +1,12 @@
+import 'package:circle_progress_bar/circle_progress_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hasan_project/controller/video_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 class UploadVideoPage extends StatefulWidget {
   const UploadVideoPage({Key? key}) : super(key: key);
 
@@ -12,7 +16,14 @@ class UploadVideoPage extends StatefulWidget {
 
 class _UploadVideoPageState extends State<UploadVideoPage> {
   late  VideoPlayerController _videoPlayerController;
-  late VideoProvider videoProvider;
+  List<Map<String, dynamic>> _tabs = [
+    //{"text": "all", "icon": null},
+    {"text": "Music", "icon": Icons.music_note},
+    {"text": "Games", "icon": Icons.sports_esports_rounded},
+    {"text": "Food", "icon": Icons.fastfood},
+    {"text": "Sport", "icon": Icons.sports_handball},
+    {"text": "Learning", "icon": Icons.school},
+  ];
   @override
   void initState() {
     _videoPlayerController = VideoPlayerController.asset('assets/video/1.mp4');
@@ -29,7 +40,8 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     // });
     return _videoPlayerController;
   }
-
+  String? _thumbnailFile;
+  String? category;
   XFile? cameraPicker;
   XFile? galleryPicker;
   XFile? picker;
@@ -38,6 +50,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     cameraPicker = await ImagePicker().pickVideo(source: ImageSource.camera);
     picker=cameraPicker;
     _videoPlayerController = loadVideoPlayer(cameraPicker!.path);
+
     setState(() {});
   }
 
@@ -52,7 +65,8 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
 
   @override
   Widget build(BuildContext context) {
-    videoProvider=Provider.of<VideoProvider>(context,listen: true);
+    VideoProvider  videoProvider=Provider.of<VideoProvider>(context );
+    videoProvider.checkSend=false;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Upload Video'),
@@ -100,10 +114,17 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
                 ],
               )),
               DropdownButtonFormField(
+
                   items: [
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < _tabs.length; i++)
                       DropdownMenuItem(
-                        child: Text('$i'),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('${_tabs[i]['text']}'),
+                            Icon(_tabs[i]['icon'])
+                          ],
+                        ),
                         value: i,
                       )
                   ],
@@ -115,26 +136,40 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
                      return 'This Filed Is Required';
                     }
                   },
-                  onChanged: (val) {}),
+                  onChanged: (val) {
+                    category=_tabs[val!]['text'];
+                    //print('${category}');
+                  }),
               const SizedBox(
                 height: 10.0,
               ),
+    ChangeNotifierProvider<VideoProvider>.value(
+    value: Provider.of<VideoProvider>(context),
+    child: Consumer<VideoProvider>(
+    builder: (context, value, child)=>
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 60.0)),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()&&picker!=null) {
-                      Navigator.pop(context);
-                    }else{
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                  onPressed: () async {
+                    if(!videoProvider.checkSend){
+                      if (_formKey.currentState!.validate()&&picker!=null) {
+                        videoProvider.checkSend=true;
+                        videoProvider.notifyListeners();
+                        await videoProvider.addVideo(context, file: picker!, category: category!);
+                        videoProvider.checkSend=false;
+                        videoProvider.notifyListeners();
+                        Navigator.pop(context);
+                      }else{
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
-                  child: const Text("Done"))
+                  child: videoProvider.checkSend?const Text("Upload ..."):const Text("Done"))))
             ],
           ),
         ),

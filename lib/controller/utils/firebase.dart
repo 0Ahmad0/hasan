@@ -168,7 +168,25 @@ class FirebaseFun{
             month*30+
             day);
   }
+  static Future uploadFile({required String filePath,required String typePathStorage}) async {
+    try {
+      String path = basename(filePath);
+      print(path);
+      File file =File(filePath);
 
+//FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
+      Reference storage = FirebaseStorage.instance.ref().child("${typePathStorage}/${path}");
+      UploadTask storageUploadTask = storage.putFile(file);
+      TaskSnapshot taskSnapshot = await storageUploadTask;
+      //Const.LOADIG(context);
+      String url = await taskSnapshot.ref.getDownloadURL();
+      //Navigator.of(context).pop();
+      print('url $url');
+      return url;
+    } catch (ex) {
+      //Const.TOAST( context,textToast:FirebaseFun.findTextToast("Please, upload the image"));
+    }
+  }
   static Future uploadImage({required XFile image, required String folder}) async {
     try {
       String path = basename(image.path);

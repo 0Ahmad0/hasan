@@ -10,11 +10,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:hasan_project/controller/utils/firebase.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 
 import '../../model/models.dart';
@@ -24,10 +27,15 @@ import '../../model/utils/const.dart';
 
 import 'dart:math' as Math;
 
+import '../model/utils/consts_manager.dart';
+
 class VideoProvider with ChangeNotifier{
   Video video=Video.init();
   Videos videos=Videos.init();
   List<Video> listVideo=[];
+  Map<String,dynamic>  mapThumbnail={};
+  Map<String,dynamic>  mapVideoPlayer={};
+  bool checkSend=false;
  fetchVideos(BuildContext context) async {
    var result;
      result= await FirebaseFun.fetchVideos();
@@ -40,13 +48,30 @@ class VideoProvider with ChangeNotifier{
    return result;
 
  }
+  fetchVideosStream() {
+    final result= FirebaseFirestore.instance
+        .collection(AppConstants.collectionVideo)
+        .orderBy("sendingTime")
+        .snapshots();
+    return result;
 
- addVideo(BuildContext context,{required String path}) async {
-   //report=Report(details: details,numReport: genOrderId(),idUser: profileProvider.user.id, dateTime: DateTime.now());
+  }
+ addVideo(BuildContext context,{required XFile file,required String category}) async {
    var result;
-     result=await FirebaseFun.addVideo(video: video);
+    video=Video(name:basename(file.path), category: category,
+       typeVideo: 'mp4', senderId: '', sendingTime: DateTime.now());
+     var  url=await FirebaseFun.uploadFile(filePath: file.path, typePathStorage: category);
+     if(url!=null){
+       video.url=url.toString();
+       video.sizeFile=await file.length();
+     }
+     else result=FirebaseFun.onError('fail upload video');
+     if(result==null){
+       result=await FirebaseFun.addVideo(video: video);
+       //Const.TOAST(context,textToast: FirebaseFun.findTextToast(result['message'].toString()));
+     }
    Get.snackbar("result", "${FirebaseFun.findTextToast(result['message'].toString())}");
-   //Const.TOAST(context,textToast: FirebaseFun.findTextToast(result['message'].toString()));
+
    return result;
 
  }
@@ -58,5 +83,51 @@ class VideoProvider with ChangeNotifier{
    return result;
 
  }
+ filterVideos({required List<Video> listVideo,required String category}){
+   List<Video> listTemp=[];
+   if(category.toLowerCase()=='all')
+     return listVideo;
+   for(Video video in listVideo){
+     if(category.toLowerCase()==video.category.toLowerCase())
+       listTemp.add(video);
+   }
+   return listTemp;
+ }
 
+  getVideoPlayers({required List<Video> listVideo}) async {
+    for(Video video in listVideo){
+      if(!mapVideoPlayer.containsKey(video.url)){
+        VideoPlayerController controller;
+        mapVideoPlayer[video.url] = VideoPlayerController.network(video.url);
+        mapVideoPlayer[video.url].initialize().then((value){
+         // print('url ${video.url} ,${mapVideoPlayer[video.url].value.duration.inSeconds}');
+          notifyListeners();
+        });
+      }
+    }
+    return mapVideoPlayer;
+  }
+getVideoPlayer({required Video video}) async {
+
+     if(!mapVideoPlayer.containsKey(video.url)){
+       VideoPlayerController controller;
+      controller =await VideoPlayerController.network(video.url);
+       await controller.initialize().then((value){
+         mapVideoPlayer[video.url]=controller;
+         notifyListeners();
+       });
+     }
+  return mapThumbnail[video.url];
+}
+ getThumbnailForVideo({required Video video}) async {
+
+     if(!mapThumbnail.containsKey(video.url)){
+       mapThumbnail[video.url]= await VideoThumbnail.thumbnailData(
+         video: video.url,
+         imageFormat: ImageFormat.JPEG,
+         quality: 25,
+       );
+     }
+     return mapThumbnail[video.url];
+ }
 }

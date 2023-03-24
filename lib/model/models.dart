@@ -100,14 +100,14 @@ class Videos {
   });
   factory Videos.fromJson( json){
     List<Video> tempList = [];
-    for(int i=1;i<json['messages'].length;i++){
+    for(int i=0;i<json.length;i++){
 
-      Video temp=Video.fromJson(json['listVideo'][i]);
-      temp.id=json['listVideo'][i].id;
+      Video temp=Video.fromJson(json[i]);
+      temp.id=json[i].id;
       tempList.add(temp);
     }
     return Videos(
-        id: json['id'],
+        //id: json['id'],
         listVideo: tempList,
 
           );
