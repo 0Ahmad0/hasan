@@ -168,7 +168,7 @@ late VideoProvider videoProvider;
                         value: Provider.of<VideoProvider>(context),
                         child: Consumer<VideoProvider>(
                             builder: (context, value, child){
-                              videoProvider.listVideo=videoProvider.filterVideos(listVideo: videoProvider.listVideo, category: category!);
+                              videoProvider.listVideo=videoProvider.filterVideos(listVideo: videoProvider.videos.listVideo, category: category!);
                               return builderVideos(videoProvider: videoProvider);
                             }));
 
