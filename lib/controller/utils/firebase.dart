@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -182,6 +183,20 @@ class FirebaseFun{
       String url = await taskSnapshot.ref.getDownloadURL();
       //Navigator.of(context).pop();
       print('url $url');
+      return url;
+    } catch (ex) {
+      //Const.TOAST( context,textToast:FirebaseFun.findTextToast("Please, upload the image"));
+    }
+  }
+  static Future uploadFileData({required XFile xFile,required Uint8List data, required String folder}) async {
+    try {
+      String path = basename(xFile.path);
+
+//FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
+      Reference storage = FirebaseStorage.instance.ref().child("${folder}/${path}");
+      UploadTask storageUploadTask = storage.putData(data);
+      TaskSnapshot taskSnapshot = await storageUploadTask;
+      String url = await taskSnapshot.ref.getDownloadURL();
       return url;
     } catch (ex) {
       //Const.TOAST( context,textToast:FirebaseFun.findTextToast("Please, upload the image"));

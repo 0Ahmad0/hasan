@@ -60,10 +60,15 @@ class VideoProvider with ChangeNotifier{
    var result;
     video=Video(name:basename(file.path), category: category,
        typeVideo: 'mp4', senderId: '', sendingTime: DateTime.now());
+    await getThumbnailForVideo(url: file.path);
+
+    var photoUrl=await FirebaseFun.uploadFileData(xFile: file,data: mapThumbnail[file.path], folder: 'Images/${category}');
+    print('object ${photoUrl}');
      var  url=await FirebaseFun.uploadFile(filePath: file.path, typePathStorage: category);
      if(url!=null){
        video.url=url.toString();
        video.sizeFile=await file.length();
+       video.urlTempPhoto=await photoUrl;
      }
      else result=FirebaseFun.onError('fail upload video');
      if(result==null){
@@ -100,7 +105,6 @@ class VideoProvider with ChangeNotifier{
         VideoPlayerController controller;
         mapVideoPlayer[video.url] = VideoPlayerController.network(video.url);
         mapVideoPlayer[video.url].initialize().then((value){
-         // print('url ${video.url} ,${mapVideoPlayer[video.url].value.duration.inSeconds}');
           notifyListeners();
         });
       }
@@ -119,15 +123,25 @@ getVideoPlayer({required Video video}) async {
      }
   return mapThumbnail[video.url];
 }
- getThumbnailForVideo({required Video video}) async {
+ getThumbnailForVideo({required String url}) async {
 
-     if(!mapThumbnail.containsKey(video.url)){
-       mapThumbnail[video.url]= await VideoThumbnail.thumbnailData(
-         video: video.url,
+     if(!mapThumbnail.containsKey(url)){
+       mapThumbnail[url]= await VideoThumbnail.thumbnailData(
+         video: url,
          imageFormat: ImageFormat.JPEG,
          quality: 25,
        );
      }
-     return mapThumbnail[video.url];
+     return mapThumbnail[url];
  }
+  // getThumbnailForVideo({required Video video}) async {
+  //   if(!mapThumbnail.containsKey(video.url)){
+  //     mapThumbnail[video.url]= await VideoThumbnail.thumbnailData(
+  //       video: video.url,
+  //       imageFormat: ImageFormat.JPEG,
+  //       quality: 25,
+  //     );
+  //   }
+  //   return mapThumbnail[video.url];
+  // }
 }

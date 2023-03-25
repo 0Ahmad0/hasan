@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +15,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:provider/provider.dart';
+
+import 'app/picture/cach_picture_widget.dart';
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
 
@@ -270,24 +273,40 @@ late VideoProvider videoProvider;
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      FutureBuilder(
-                          future: videoProvider.getThumbnailForVideo(video: videoProvider.listVideo[index]),
-                          builder: (context, snapShot) {
-                            return snapShot.hasData
-                                ?Image.memory(
-                              videoProvider.mapThumbnail[videoProvider.listVideo[index].url]!,
-                              width: double.infinity,
-                              fit: BoxFit.fill,
-                              height:
-                              MediaQuery.of(context).size.height / 3,
-                            )
-                                :Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!, child: Container(
-                              width: double.infinity,
-                              height: MediaQuery.of(context).size.height / 6,
-                              color: Colors.white,
-                            ),); }),
+                      CacheNetworkImage(
+                        photoUrl://  'https://firebasestorage.googleapis.com/v0/b/hasan-pro.appspot.com/o/Images%2FMusic%2Fimage_picker.mp4?alt=media&token=79a38914-2edf-4437-97ac-538ddfdc4935',
+                        videoProvider.listVideo[index].urlTempPhoto,
+                           width:double.infinity ,
+                        boxFit: BoxFit.fill,
+                          height: MediaQuery.of(context).size.height / 3,
+                        errorWidget: Icon(Icons.image),
+                        waitWidget: Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!, child: Container(
+                                  width: double.infinity,
+                                  height: MediaQuery.of(context).size.height / 6,
+                                  color: Colors.white,
+                                ),
+                      ),
+                      ),
+                      // FutureBuilder(
+                      //     future: videoProvider.getThumbnailForVideo(video: videoProvider.listVideo[index]),
+                      //     builder: (context, snapShot) {
+                      //       return snapShot.hasData
+                      //           ?Image.memory(
+                      //         videoProvider.mapThumbnail[videoProvider.listVideo[index].url]!,
+                      //         width: double.infinity,
+                      //         fit: BoxFit.fill,
+                      //         height:
+                      //         MediaQuery.of(context).size.height / 3,
+                      //       )
+                      //           :Shimmer.fromColors(
+                      //         baseColor: Colors.grey[300]!,
+                      //         highlightColor: Colors.grey[100]!, child: Container(
+                      //         width: double.infinity,
+                      //         height: MediaQuery.of(context).size.height / 6,
+                      //         color: Colors.white,
+                      //       ),); }),
                       ChangeNotifierProvider<VideoProvider>.value(
                         value: Provider.of<VideoProvider>(context),
                         child: Consumer<VideoProvider>(
