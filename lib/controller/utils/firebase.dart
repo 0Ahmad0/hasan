@@ -5,13 +5,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:hasan_project/controller/uploader_provider.dart';
 import 'package:image_picker/image_picker.dart';
 
 
 import 'package:path/path.dart' ;
 
 import '../../model/models.dart' as model;
-
+import '../video_provider.dart';
+import 'package:provider/provider.dart';
 
 
 //import '../../translations/locale_keys.g.dart';
@@ -178,6 +181,28 @@ class FirebaseFun{
 //FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
       Reference storage = FirebaseStorage.instance.ref().child("${typePathStorage}/${path}");
       UploadTask storageUploadTask = storage.putFile(file);
+      TaskSnapshot taskSnapshot = await storageUploadTask;
+      //Const.LOADIG(context);
+      String url = await taskSnapshot.ref.getDownloadURL();
+      //Navigator.of(context).pop();
+      print('url $url');
+      return url;
+    } catch (ex) {
+      //Const.TOAST( context,textToast:FirebaseFun.findTextToast("Please, upload the image"));
+    }
+  }
+  static Future uploadFileWithProgress(BuildContext context,{required String filePath,required String typePathStorage}) async {
+    UploaderProvider  uploaderProvider=Provider.of<UploaderProvider>(context ,listen: false);
+    try {
+      String path = basename(filePath);
+      print(path);
+      File file =File(filePath);
+
+//FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
+      Reference storage = FirebaseStorage.instance.ref().child("${typePathStorage}/${path}");
+      UploadTask storageUploadTask = storage.putFile(file);
+
+      uploaderProvider.setValueMapUploadTask(key:filePath,value: storageUploadTask);
       TaskSnapshot taskSnapshot = await storageUploadTask;
       //Const.LOADIG(context);
       String url = await taskSnapshot.ref.getDownloadURL();

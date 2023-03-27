@@ -64,7 +64,7 @@ class VideoProvider with ChangeNotifier{
 
     var photoUrl=await FirebaseFun.uploadFileData(xFile: file,data: mapThumbnail[file.path], folder: 'Images/${category}');
     print('object ${photoUrl}');
-     var  url=await FirebaseFun.uploadFile(filePath: file.path, typePathStorage: category);
+     var  url=await FirebaseFun.uploadFileWithProgress(context,filePath: file.path, typePathStorage: category);
      if(url!=null){
        video.url=url.toString();
        video.sizeFile=await file.length();

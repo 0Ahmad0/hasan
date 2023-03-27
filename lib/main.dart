@@ -6,6 +6,7 @@ import 'package:hasan_project/pages/home_page.dart';
 import 'package:provider/provider.dart';
 
 import 'controller/downloder_provider.dart';
+import 'controller/uploader_provider.dart';
 import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
           // ChangeNotifierProvider(create: (_) => AppProvider()),
           // Provider<HomeProvider>(create: (_)=>HomeProvider()),
            Provider<DownloaderProvider>(create: (_)=>DownloaderProvider()),
+           Provider<UploaderProvider>(create: (_)=>UploaderProvider()),
            Provider<VideoProvider>(create: (_)=>VideoProvider()),
           //     Provider<CreateEnvironmentProvider>(create: (_)=>CreateEnvironmentProvider()),
         ],

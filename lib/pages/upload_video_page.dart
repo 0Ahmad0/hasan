@@ -1,6 +1,8 @@
 import 'package:circle_progress_bar/circle_progress_bar.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hasan_project/controller/uploader_provider.dart';
 import 'package:hasan_project/controller/video_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -62,10 +64,11 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
   }
 
   final _formKey = GlobalKey<FormState>();
-
+late UploaderProvider uploaderProvider;
   @override
   Widget build(BuildContext context) {
     VideoProvider  videoProvider=Provider.of<VideoProvider>(context );
+    uploaderProvider=Provider.of<UploaderProvider>(context );
     videoProvider.checkSend=false;
     return Scaffold(
       appBar: AppBar(
@@ -147,6 +150,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     value: Provider.of<VideoProvider>(context),
     child: Consumer<VideoProvider>(
     builder: (context, value, child)=>
+    !videoProvider.checkSend?
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 60.0)),
@@ -169,10 +173,57 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
                       }
                     }
                   },
-                  child: videoProvider.checkSend?const Text("Upload ..."):const Text("Done"))))
+                  child:const Text("Done"))
+        :buildProgress(filePath: picker!.path)
+
+    ))
+
             ],
           ),
         ),
+      ),
+    );
+  }
+  Widget buildProgress({required String filePath})=>
+      ChangeNotifierProvider<UploaderProvider>.value(
+          value: Provider.of<UploaderProvider>(context),
+          child: Consumer<UploaderProvider>(
+              builder: (context, uploaderProvider, child)=>
+
+      (uploaderProvider.mapUploadTask[filePath]!=null)?StreamBuilder<TaskSnapshot>(
+    stream: uploaderProvider.mapUploadTask[filePath]?.snapshotEvents,
+    builder: (context,snapshot){
+      if(snapshot.hasData){
+        final data=snapshot.data!;
+        double progress=data.bytesTransferred/data.totalBytes;
+        uploaderProvider.mapUploadProgress[filePath]=progress;
+         return buildLinearProgress(progress: progress,
+         child: Text("Upload "+'${(100*progress).round()}%'
+         ,style:const TextStyle(color: Colors.white)));
+      }else{
+        return buildLinearProgress(progress: 0,
+            child: Text("Upload ...",style:const TextStyle(color: Colors.white)));
+      }
+    }
+  ): buildLinearProgress(progress: 0,
+          child: Text("Processing ...",style:const TextStyle(color: Colors.white)))));
+
+  buildLinearProgress({required double progress,required child}){
+    return Container(
+      width: double.infinity,
+      child: Stack(
+
+        alignment: Alignment.center,
+       fit: StackFit.loose,
+        children: [
+        LinearProgressIndicator(
+          minHeight: 60.0,
+        value: progress,
+        backgroundColor: Colors.grey,
+        color: Colors.green,
+      ),
+          child
+        ],
       ),
     );
   }
