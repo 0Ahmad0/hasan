@@ -56,13 +56,13 @@ class VideoProvider with ChangeNotifier{
     return result;
 
   }
- addVideo(BuildContext context,{required XFile file,required String category}) async {
+ addVideo(BuildContext context,{required File file,required String category}) async {
    var result;
     video=Video(name:basename(file.path), category: category,
        typeVideo: 'mp4', senderId: '', sendingTime: DateTime.now());
     await getThumbnailForVideo(url: file.path);
 
-    var photoUrl=await FirebaseFun.uploadFileData(xFile: file,data: mapThumbnail[file.path], folder: 'Images/${category}');
+    var photoUrl=await FirebaseFun.uploadFileData(file: file,data: mapThumbnail[file.path], folder: 'Images/${category}');
     print('object ${photoUrl}');
      var  url=await FirebaseFun.uploadFileWithProgress(context,filePath: file.path, typePathStorage: category);
      if(url!=null){

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:circle_progress_bar/circle_progress_bar.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,7 +19,7 @@ class UploadVideoPage extends StatefulWidget {
 }
 
 class _UploadVideoPageState extends State<UploadVideoPage> {
-  late  VideoPlayerController _videoPlayerController;
+  // late  VideoPlayerController _videoPlayerController;
   List<Map<String, dynamic>> _tabs = [
     //{"text": "all", "icon": null},
     {"text": "Music", "icon": Icons.music_note},
@@ -32,35 +34,56 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
     super.initState();
   }
 
-  loadVideoPlayer(String path) async {
-    _videoPlayerController = VideoPlayerController.asset(path);
-    // _videoPlayerController.addListener(() {
-    //   setState(() {});
-    // });
-    await  _videoPlayerController.initialize().then((value) {
-     // setState(() {});
-     });
-    return _videoPlayerController;
-  }
+  // loadVideoPlayer(String path) async {
+  //   _videoPlayerController = VideoPlayerController.asset(path);
+  //   // _videoPlayerController.addListener(() {
+  //   //   setState(() {});
+  //   // });
+  //   await  _videoPlayerController.initialize().then((value) {
+  //    // setState(() {});
+  //    });
+  //   return _videoPlayerController;
+  // }
   String? _thumbnailFile;
   String? category;
   XFile? cameraPicker;
   XFile? galleryPicker;
-  XFile? picker;
+  // XFile? picker;
 
-  _pickVideoFromCamera() async {
-    cameraPicker = await ImagePicker().pickVideo(source: ImageSource.camera);
-    picker=cameraPicker;
-    _videoPlayerController = loadVideoPlayer(cameraPicker!.path);
-    setState(() {});
+  File? _video;
+  final picker = ImagePicker();
+  VideoPlayerController? _videoPlayerController;
+  //
+  // _pickVideoFromCamera() async {
+  //   cameraPicker = await ImagePicker().pickVideo(source: ImageSource.camera);
+  //   picker=cameraPicker;
+  //   _videoPlayerController = loadVideoPlayer(cameraPicker!.path);
+  //   setState(() {});
+  // }
+  //
+  // _pickVideoFromGallery() async {
+  //   galleryPicker = await ImagePicker().pickVideo(source: ImageSource.gallery);
+  //   picker=galleryPicker;
+  //   _videoPlayerController = await loadVideoPlayer(galleryPicker!.path);
+  //   _videoPlayerController.play();
+  //   setState(() {});
+  // }
+
+  _pickVideo() async {
+    PickedFile? pickedFile = await picker.getVideo(source: ImageSource.gallery);
+    _video = File(pickedFile!.path);
+    _videoPlayerController = VideoPlayerController.file(_video!)..initialize().then((_) {
+      setState(() { });
+      _videoPlayerController!.play();
+    });
   }
-
-  _pickVideoFromGallery() async {
-    galleryPicker = await ImagePicker().pickVideo(source: ImageSource.gallery);
-    picker=galleryPicker;
-    _videoPlayerController = await loadVideoPlayer(galleryPicker!.path);
-    _videoPlayerController.play();
-    setState(() {});
+  _pickVideoFromCamera() async {
+    XFile? pickedFile = await picker.pickVideo(source: ImageSource.camera);
+    _video = File(pickedFile!.path);
+    _videoPlayerController = VideoPlayerController.file(_video!)..initialize().then((_) {
+      setState(() { });
+      _videoPlayerController!.play();
+    });
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -88,7 +111,7 @@ late UploaderProvider uploaderProvider;
                     children: [
                       Expanded(
                           child: ElevatedButton(
-                        onPressed: _pickVideoFromGallery,
+                        onPressed: _pickVideo,
                         child: const ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text('From Gallery'),
@@ -109,13 +132,19 @@ late UploaderProvider uploaderProvider;
                       )),
                     ],
                   ),
-                  Expanded(
+                  const SizedBox(height: 20.0,),
+                  if (_video != null)
+                    _videoPlayerController!.value.isInitialized
+                        ? Expanded(
                           child: AspectRatio(
-                          aspectRatio: 10.0,
-                          child:VideoPlayer(_videoPlayerController),
-                        ))
+                      aspectRatio: _videoPlayerController!.value.aspectRatio,
+                      child: VideoPlayer(_videoPlayerController!),
+                    ),
+                        )
+                        : Container(),
                 ],
               )),
+              const SizedBox(height: 20.0,),
               DropdownButtonFormField(
 
                   items: [
@@ -159,7 +188,7 @@ late UploaderProvider uploaderProvider;
                       if (_formKey.currentState!.validate()&&picker!=null) {
                         videoProvider.checkSend=true;
                         videoProvider.notifyListeners();
-                        await videoProvider.addVideo(context, file: picker!, category: category!);
+                        await videoProvider.addVideo(context, file: _video!, category: category!);
                         videoProvider.checkSend=false;
                         videoProvider.notifyListeners();
                         Navigator.pop(context);
