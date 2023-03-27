@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,7 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   var getVideos;
 
-  List<Map<String, dynamic>> _tabs = [
+ final List<Map<String, dynamic>> _tabs = [
     {"text": "all", "icon": null},
     {"text": "Music", "icon": Icons.music_note},
     {"text": "Games", "icon": Icons.sports_esports_rounded},

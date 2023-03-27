@@ -188,9 +188,9 @@ class FirebaseFun{
       //Const.TOAST( context,textToast:FirebaseFun.findTextToast("Please, upload the image"));
     }
   }
-  static Future uploadFileData({required XFile xFile,required Uint8List data, required String folder}) async {
+  static Future uploadFileData({required File file,required Uint8List data, required String folder}) async {
     try {
-      String path = basename(xFile.path);
+      String path = basename(file.path);
 
 //FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
       Reference storage = FirebaseStorage.instance.ref().child("${folder}/${path}");
