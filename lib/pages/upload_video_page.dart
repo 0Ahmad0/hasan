@@ -48,7 +48,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
   String? category;
   XFile? cameraPicker;
   XFile? galleryPicker;
-  // XFile? picker;
+   //XFile? picker;
 
   File? _video;
   final picker = ImagePicker();
@@ -203,7 +203,7 @@ late UploaderProvider uploaderProvider;
                     }
                   },
                   child:const Text("Done"))
-        :buildProgress(filePath: picker!.path)
+        :buildProgress(filePath: _video!.path)
 
     ))
 
@@ -231,11 +231,11 @@ late UploaderProvider uploaderProvider;
          ,style:const TextStyle(color: Colors.white)));
       }else{
         return buildLinearProgress(progress: 0,
-            child: Text("Upload ...",style:const TextStyle(color: Colors.white)));
+            child: Text("Upload 0%",style:const TextStyle(color: Colors.white)));
       }
     }
   ): buildLinearProgress(progress: 0,
-          child: Text("Processing ...",style:const TextStyle(color: Colors.white)))));
+          child: Text("Processing 0%",style:const TextStyle(color: Colors.white)))));
 
   buildLinearProgress({required double progress,required child}){
     return Container(

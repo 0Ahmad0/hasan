@@ -13,9 +13,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' ;
 
 import '../../model/models.dart' as model;
-import '../video_provider.dart';
-import 'package:provider/provider.dart';
 
+import 'package:provider/provider.dart';
 
 //import '../../translations/locale_keys.g.dart';
 
@@ -192,7 +191,7 @@ class FirebaseFun{
     }
   }
   static Future uploadFileWithProgress(BuildContext context,{required String filePath,required String typePathStorage}) async {
-    UploaderProvider  uploaderProvider=Provider.of<UploaderProvider>(context ,listen: false);
+    UploaderProvider uploaderProvider=Provider.of<UploaderProvider>(context,listen: false);
     try {
       String path = basename(filePath);
       print(path);
@@ -201,9 +200,9 @@ class FirebaseFun{
 //FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
       Reference storage = FirebaseStorage.instance.ref().child("${typePathStorage}/${path}");
       UploadTask storageUploadTask = storage.putFile(file);
-
-      uploaderProvider.setValueMapUploadTask(key:filePath,value: storageUploadTask);
+      uploaderProvider.setValueMapUploadTask(key: filePath, value: storageUploadTask);
       TaskSnapshot taskSnapshot = await storageUploadTask;
+
       //Const.LOADIG(context);
       String url = await taskSnapshot.ref.getDownloadURL();
       //Navigator.of(context).pop();
@@ -213,9 +212,9 @@ class FirebaseFun{
       //Const.TOAST( context,textToast:FirebaseFun.findTextToast("Please, upload the image"));
     }
   }
-  static Future uploadFileData({required XFile xFile,required Uint8List data, required String folder}) async {
+  static Future uploadFileData({required File file,required Uint8List data, required String folder}) async {
     try {
-      String path = basename(xFile.path);
+      String path = basename(file.path);
 
 //FirebaseStorage storage = FirebaseStorage.instance.ref().child(path);
       Reference storage = FirebaseStorage.instance.ref().child("${folder}/${path}");
